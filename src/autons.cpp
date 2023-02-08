@@ -3,8 +3,7 @@
 #include "pros/motors.hpp"
 #include <random>
 
-const int DRIVE_SPEED =
-    110; // This is 110/127 (around 87% of max speed).  We don't suggest making
+const int DRIVE_SPEED = 110;
          // this 127. If this is 127 and the robot tries to heading correct,
          // it's only correcting by making one side slower.  When this is 87%,
          // it's correcting by making one side faster and one side slower,
@@ -12,9 +11,55 @@ const int DRIVE_SPEED =
 const int TURN_SPEED = 90;
 const int SWING_SPEED = 90;
 
+bool launched = false;
+bool launching = false;
+bool start = false;
+bool done = true;
+int minval = 1600;
+int maxval = 2600;
+bool endgame_state = false;
+
+pros::Controller controller(pros::E_CONTROLLER_MASTER);
+pros::Motor Intake(7);
+pros::Motor launcher(4);
+pros::ADIAnalogIn pm('A');
+pros::ADIDigitalOut endgame('B');
+
 ///
 // Constants
 ///
+
+bool checkLaunch() {
+  if (done && start) {
+      launching = true;
+      done = false;
+      start = false;
+    }
+
+  if (launching && pm.get_value() >= minval) {
+    launcher.move_velocity(100);
+  } else if (launching && pm.get_value() < minval) {
+    launcher.move_velocity(0);
+    launching = false;
+    launched = true;
+  }
+
+  if (launched && pm.get_value() <= maxval) {
+    launcher.move_velocity(100);
+  } else if (launched && pm.get_value() > maxval) {
+    launcher.move_velocity(0);
+    launched = false;
+    done = true;
+  }
+
+  return done;
+}
+
+void waitUntilLaunched() {
+  while (!checkLaunch()) {
+    pros::delay(20);
+  }
+}
 
 // It's best practice to tune constants when the robot is empty and with heavier
 // game objects, or with lifts up vs down. If the objects are light or the cog
@@ -62,19 +107,108 @@ void modified_exit_condition() {
   chassis.set_exit_condition(chassis.drive_exit, 80, 50, 300, 150, 500, 500);
 }
 
-void longside() {
-  chassis.set_drive_pid(12, DRIVE_SPEED);
+void leftsideQWP() {
+  chassis.set_drive_pid(2, DRIVE_SPEED);
   chassis.wait_drive();
 
-  chassis.set_turn_pid(-45, TURN_SPEED);
+  Intake.move_relative(90, 600);
+  pros::delay(500);
+
+  chassis.set_drive_pid(-10, DRIVE_SPEED);
+  chassis.wait_drive();
+
+  start = true;
+  waitUntilLaunched();
+
+  chassis.set_turn_pid(-135, TURN_SPEED);
+  chassis.wait_drive();
+
+  Intake.move_velocity(600);
+
+  chassis.set_drive_pid(48, DRIVE_SPEED/2);
+  chassis.wait_drive();
+  
+  Intake.move_velocity(0);
+
+  chassis.set_turn_pid(25, TURN_SPEED);
+  chassis.wait_drive();
+
+  chassis.set_drive_pid(48, DRIVE_SPEED);
+  chassis.wait_drive();
+  
+  chassis.set_turn_pid(-25, TURN_SPEED);
+  chassis.wait_drive();
+
+  chassis.set_drive_pid(48, DRIVE_SPEED);
   chassis.wait_drive();
 
   chassis.set_turn_pid(90, TURN_SPEED);
   chassis.wait_drive();
 
-  chassis.set_turn_pid(-45, TURN_SPEED);
+  chassis.set_drive_pid(11, DRIVE_SPEED);
+  chassis.wait_drive();
+
+  Intake.move_relative(90, 600);
+  pros::delay(500);
+
+  chassis.set_drive_pid(-2, DRIVE_SPEED);
   chassis.wait_drive();
 }
+
+void rightsideQWP() {
+  chassis.set_drive_pid(24, DRIVE_SPEED);
+  chassis.wait_drive();
+
+  chassis.set_turn_pid(90, TURN_SPEED);
+  chassis.wait_drive();
+
+  chassis.set_drive_pid(11, DRIVE_SPEED);
+  chassis.wait_drive();
+
+  Intake.move_relative(90, 600);
+  pros::delay(500);
+
+  chassis.set_drive_pid(-10, DRIVE_SPEED);
+  chassis.wait_drive();
+
+  start = true;
+  waitUntilLaunched();
+
+  chassis.set_turn_pid(135, TURN_SPEED);
+  chassis.wait_drive();
+
+  Intake.move_velocity(600);
+
+  chassis.set_drive_pid(60, DRIVE_SPEED/2);
+  chassis.wait_drive();
+
+  Intake.move_velocity(0);
+
+  chassis.set_turn_pid(-25, TURN_SPEED);
+  chassis.wait_drive();
+
+  chassis.set_drive_pid(72, DRIVE_SPEED);
+  chassis.wait_drive();
+
+  chassis.set_turn_pid(25, TURN_SPEED);
+  chassis.wait_drive();
+
+  chassis.set_drive_pid(48, DRIVE_SPEED);
+  chassis.wait_drive();
+
+  chassis.set_turn_pid(-90, TURN_SPEED);
+  chassis.wait_drive();
+
+  chassis.set_drive_pid(11, DRIVE_SPEED);
+  chassis.wait_drive();
+
+  Intake.move_relative(90, 600);
+  pros::delay(500);
+
+  chassis.set_drive_pid(-2, DRIVE_SPEED);
+  chassis.wait_drive();
+}
+
 void blank() {}
 /*
 

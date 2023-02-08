@@ -10,8 +10,17 @@
 #include "pros/screen.hpp"
 #include <charconv>
 #include <future>
+#include <ios>
 #include <iostream>
 #include <string>
+
+
+bool launched = false;
+bool launching = false;
+bool done = true;
+int minval = 1600;
+int maxval = 2600;
+bool endgame_state = false;
 
 // Chassis constructor
 Drive chassis(
@@ -64,6 +73,12 @@ Drive chassis(
     // ,1
 );
 
+pros::Controller controller(pros::E_CONTROLLER_MASTER);
+pros::Motor Intake(7);
+pros::Motor launcher(4);
+pros::ADIAnalogIn pm('A');
+pros::ADIDigitalOut endgame('B');
+
 /**
  * Runs initialization code. This occurs as soon as the program is started.
  *
@@ -73,6 +88,8 @@ Drive chassis(
 void initialize() {
   // Print our branding over your terminal :D
   // ez::print_ez_template();
+
+  chassis.set_drive_brake(pros::E_MOTOR_BRAKE_COAST);
 
   pros::delay(
       500); // Stop the user from doing anything while legacy ports configure.
@@ -98,7 +115,8 @@ void initialize() {
 
   // Autonomous Selector using LLEMU
   ez::as::auton_selector.add_autons({
-      Auton("Longside", longside),
+      Auton("LeftSide qualifier", longsideQWP),
+      Auton("RightSide qualifier", rightsideQWP),
       Auton("Blank", blank),
   });
 
@@ -152,51 +170,8 @@ void autonomous() {
       .call_selected_auton(); // Calls selected auton from autonomous selector.
 }
 
-/**
- * Runs the operator control code. This function will be started in its own task
- * with the default priority and stack size whenever the robot is enabled via
- * the Field Management System or the VEX Competition Switch in the operator
- * control mode.
- *
- * If no competition control is connected, this function will run immediately
- * following initialize().
- *
- * If the robot is disabled or communications is lost, the
- * operator control task will be stopped. Re-enabling the robot will restart the
- * task, not resume it from where it left off.
- */
-void opcontrol() {
-  // This is preference to what you like to drive on.
-  chassis.set_drive_brake(pros::E_MOTOR_BRAKE_COAST);
-
-  pros::Controller controller(pros::E_CONTROLLER_MASTER);
-  pros::Motor Intake(7);
-  pros::Motor launcher(4);
-  pros::Motor roller(8);
-  pros::ADIAnalogIn pm('A');
-  pros::ADIDigitalOut endgame('B');
-  roller.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-
-  bool launched = false;
-  bool launching = false;
-  bool done = true;
-  int minval = 1600;
-  int maxval = 2600;
-  bool endgame_state = false;
-
-  endgame.set_value(endgame_state);
-
-  while (true) {
-    pros::lcd::set_text(0, "PM value: " + to_string(pm.get_value()));
-    pros::lcd::set_text(1, "endgame state: " + to_string(endgame_state));
-
-    // chassis.tank(); // Tank control
-    chassis.arcade_standard(ez::SPLIT); // Standard split arcade
-    // chassis.arcade_standard(ez::SINGLE); // Standard single arcade
-    // chassis.arcade_flipped(ez::SPLIT); // Flipped split arcade
-    // chassis.arcade_flipped(ez::SINGLE); // Flipped single arcade
-
-    if (done && controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) {
+void checkLaunch() {
+  if (done && controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) {
       launching = true;
       done = false;
     }
@@ -216,6 +191,37 @@ void opcontrol() {
       launched = false;
       done = true;
     }
+}
+
+/**
+ * Runs the operator control code. This function will be started in its own task
+ * with the default priority and stack size whenever the robot is enabled via
+ * the Field Management System or the VEX Competition Switch in the operator
+ * control mode.
+ *
+ * If no competition control is connected, this function will run immediately
+ * following initialize().
+ *
+ * If the robot is disabled or communications is lost, the
+ * operator control task will be stopped. Re-enabling the robot will restart the
+ * task, not resume it from where it left off.
+ */
+void opcontrol() {
+  // This is preference to what you like to drive on.
+
+  endgame.set_value(endgame_state);
+
+  while (true) {
+    pros::lcd::set_text(0, "PM value: " + to_string(pm.get_value()));
+    pros::lcd::set_text(1, "endgame state: " + to_string(endgame_state));
+
+    // chassis.tank(); // Tank control
+    chassis.arcade_standard(ez::SPLIT); // Standard split arcade
+    // chassis.arcade_standard(ez::SINGLE); // Standard single arcade
+    // chassis.arcade_flipped(ez::SPLIT); // Flipped split arcade
+    // chassis.arcade_flipped(ez::SINGLE); // Flipped single arcade
+
+    checkLaunch();
 
     if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_UP)) {
       endgame.set_value(true);

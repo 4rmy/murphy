@@ -4,7 +4,8 @@
 
 extern Drive chassis;
 
-void longside();
+void longsideQWP();
+void rightsideQWP();
 void blank();
 
 void default_constants();
