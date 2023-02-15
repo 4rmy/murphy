@@ -4,20 +4,16 @@
 #include <random>
 
 const int DRIVE_SPEED = 110;
-         // this 127. If this is 127 and the robot tries to heading correct,
-         // it's only correcting by making one side slower.  When this is 87%,
-         // it's correcting by making one side faster and one side slower,
-         // giving better heading correction.
 const int TURN_SPEED = 90;
 const int SWING_SPEED = 90;
 
-bool launched = false;
-bool launching = false;
-bool start = false;
-bool done = true;
-int minval = 1600;
-int maxval = 2600;
-bool endgame_state = false;
+bool alaunched = false;
+bool alaunching = false;
+bool astart = false;
+bool adone = true;
+int aminval = 1100;
+int amaxval = 2100;
+bool aendgame_state = false;
 
 pros::Controller controller(pros::E_CONTROLLER_MASTER);
 pros::Motor Intake(7);
@@ -29,34 +25,34 @@ pros::ADIDigitalOut endgame('B');
 // Constants
 ///
 
-bool checkLaunch() {
-  if (done && start) {
-      launching = true;
-      done = false;
-      start = false;
-    }
-
-  if (launching && pm.get_value() >= minval) {
-    launcher.move_velocity(100);
-  } else if (launching && pm.get_value() < minval) {
-    launcher.move_velocity(0);
-    launching = false;
-    launched = true;
+bool acheckLaunch() {
+  if (adone && astart) {
+    alaunching = true;
+    adone = false;
+    astart = false;
   }
 
-  if (launched && pm.get_value() <= maxval) {
+  if (alaunching && pm.get_value() <= amaxval) {
     launcher.move_velocity(100);
-  } else if (launched && pm.get_value() > maxval) {
+  } else if (alaunching && pm.get_value() > aminval) {
     launcher.move_velocity(0);
-    launched = false;
-    done = true;
+    alaunching = false;
+    alaunched = true;
   }
 
-  return done;
+  if (alaunched && pm.get_value() >= aminval) {
+    launcher.move_velocity(100);
+  } else if (alaunched && pm.get_value() < aminval) {
+    launcher.move_velocity(0);
+    alaunched = false;
+    adone = true;
+  }
+
+  return adone;
 }
 
 void waitUntilLaunched() {
-  while (!checkLaunch()) {
+  while (!acheckLaunch()) {
     pros::delay(20);
   }
 }
@@ -108,50 +104,28 @@ void modified_exit_condition() {
 }
 
 void leftsideQWP() {
-  chassis.set_drive_pid(2, DRIVE_SPEED);
-  chassis.wait_drive();
-
-  Intake.move_relative(90, 600);
-  pros::delay(500);
-
-  chassis.set_drive_pid(-10, DRIVE_SPEED);
-  chassis.wait_drive();
-
-  start = true;
-  waitUntilLaunched();
-
-  chassis.set_turn_pid(-135, TURN_SPEED);
-  chassis.wait_drive();
+  chassis.set_tank(DRIVE_SPEED, DRIVE_SPEED);
+  pros::delay(100);
+  chassis.set_tank(0, 0);
 
   Intake.move_velocity(600);
-
-  chassis.set_drive_pid(48, DRIVE_SPEED/2);
-  chassis.wait_drive();
-  
+  pros::delay(200);
   Intake.move_velocity(0);
-
-  chassis.set_turn_pid(25, TURN_SPEED);
-  chassis.wait_drive();
-
-  chassis.set_drive_pid(48, DRIVE_SPEED);
-  chassis.wait_drive();
-  
-  chassis.set_turn_pid(-25, TURN_SPEED);
-  chassis.wait_drive();
-
-  chassis.set_drive_pid(48, DRIVE_SPEED);
-  chassis.wait_drive();
-
-  chassis.set_turn_pid(90, TURN_SPEED);
-  chassis.wait_drive();
-
-  chassis.set_drive_pid(11, DRIVE_SPEED);
-  chassis.wait_drive();
-
-  Intake.move_relative(90, 600);
   pros::delay(500);
 
-  chassis.set_drive_pid(-2, DRIVE_SPEED);
+  chassis.set_drive_pid(-1, DRIVE_SPEED);
+  chassis.wait_drive();
+
+  chassis.set_drive_pid(0, DRIVE_SPEED);
+  chassis.wait_drive();
+  
+  chassis.set_turn_pid(45, TURN_SPEED);
+  chassis.wait_drive();
+
+  chassis.set_drive_pid(-48, DRIVE_SPEED);
+  chassis.wait_drive();
+
+  chassis.set_drive_pid(0, DRIVE_SPEED);
   chassis.wait_drive();
 }
 
@@ -171,7 +145,7 @@ void rightsideQWP() {
   chassis.set_drive_pid(-10, DRIVE_SPEED);
   chassis.wait_drive();
 
-  start = true;
+  astart = true;
   waitUntilLaunched();
 
   chassis.set_turn_pid(135, TURN_SPEED);
@@ -179,7 +153,7 @@ void rightsideQWP() {
 
   Intake.move_velocity(600);
 
-  chassis.set_drive_pid(60, DRIVE_SPEED/2);
+  chassis.set_drive_pid(60, DRIVE_SPEED / 2);
   chassis.wait_drive();
 
   Intake.move_velocity(0);
@@ -209,7 +183,28 @@ void rightsideQWP() {
   chassis.wait_drive();
 }
 
-void blank() {}
+void blank() {
+  chassis.set_tank(110, 100);
+  pros::delay(100);
+  chassis.set_tank(0, 0);
+
+  Intake.move_velocity(600);
+  pros::delay(1000);
+  Intake.move_velocity(0);
+
+  chassis.set_drive_pid(-6, DRIVE_SPEED);
+  chassis.wait_drive();
+
+  chassis.set_turn_pid(-5, TURN_SPEED);
+  chassis.wait_drive();
+
+  chassis.set_tank(0, 0);
+
+  pros::delay(1000);
+
+  astart = true;
+  waitUntilLaunched();
+}
 /*
 
 

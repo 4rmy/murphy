@@ -14,12 +14,11 @@
 #include <iostream>
 #include <string>
 
-
-bool launched = false;
+bool launched = true;
 bool launching = false;
-bool done = true;
-int minval = 1600;
-int maxval = 2600;
+bool done = false;
+int minval = 1125;
+int maxval = 2100;
 bool endgame_state = false;
 
 // Chassis constructor
@@ -73,12 +72,6 @@ Drive chassis(
     // ,1
 );
 
-pros::Controller controller(pros::E_CONTROLLER_MASTER);
-pros::Motor Intake(7);
-pros::Motor launcher(4);
-pros::ADIAnalogIn pm('A');
-pros::ADIDigitalOut endgame('B');
-
 /**
  * Runs initialization code. This occurs as soon as the program is started.
  *
@@ -115,7 +108,7 @@ void initialize() {
 
   // Autonomous Selector using LLEMU
   ez::as::auton_selector.add_autons({
-      Auton("LeftSide qualifier", longsideQWP),
+      Auton("LeftSide qualifier", leftsideQWP),
       Auton("RightSide qualifier", rightsideQWP),
       Auton("Blank", blank),
   });
@@ -170,29 +163,6 @@ void autonomous() {
       .call_selected_auton(); // Calls selected auton from autonomous selector.
 }
 
-void checkLaunch() {
-  if (done && controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) {
-      launching = true;
-      done = false;
-    }
-
-    if (launching && pm.get_value() >= minval) {
-      launcher.move_velocity(100);
-    } else if (launching && pm.get_value() < minval) {
-      launcher.move_velocity(0);
-      launching = false;
-      launched = true;
-    }
-
-    if (launched && pm.get_value() <= maxval) {
-      launcher.move_velocity(100);
-    } else if (launched && pm.get_value() > maxval) {
-      launcher.move_velocity(0);
-      launched = false;
-      done = true;
-    }
-}
-
 /**
  * Runs the operator control code. This function will be started in its own task
  * with the default priority and stack size whenever the robot is enabled via
@@ -207,6 +177,14 @@ void checkLaunch() {
  * task, not resume it from where it left off.
  */
 void opcontrol() {
+  pros::Controller controller(pros::E_CONTROLLER_MASTER);
+  pros::Motor Intake(7);
+  pros::Motor launcher(4);
+  pros::ADIAnalogIn pm('F');
+  pros::ADIDigitalOut endgame('B');
+  pros::ADIDigitalOut pistonBoost('H');
+
+  pistonBoost.set_value(false);
   // This is preference to what you like to drive on.
 
   endgame.set_value(endgame_state);
@@ -221,7 +199,26 @@ void opcontrol() {
     // chassis.arcade_flipped(ez::SPLIT); // Flipped split arcade
     // chassis.arcade_flipped(ez::SINGLE); // Flipped single arcade
 
-    checkLaunch();
+    if (done && controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) {
+      launching = true;
+      done = false;
+    }
+
+    if (launching && pm.get_value() <= maxval) {
+      launcher.move_velocity(100);
+    } else if (launching && pm.get_value() > minval) {
+      launcher.move_velocity(0);
+      launching = false;
+      launched = true;
+    }
+
+    if (launched && pm.get_value() >= minval) {
+      launcher.move_velocity(100);
+    } else if (launched && pm.get_value() < minval) {
+      launcher.move_velocity(0);
+      launched = false;
+      done = true;
+    }
 
     if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_UP)) {
       endgame.set_value(true);
@@ -237,6 +234,10 @@ void opcontrol() {
       Intake.move_velocity(600);
     } else {
       Intake.move_velocity(0);
+    }
+
+    if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_LEFT)) {
+      pistonBoost.set_value(true);
     }
 
     pros::delay(ez::util::DELAY_TIME); // This is used for timer calculations!
