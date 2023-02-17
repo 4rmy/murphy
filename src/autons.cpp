@@ -89,11 +89,13 @@ void launche() {
       done = false;
       fin = true;
     }
+    pros::delay(10);
   }
 }
 
 void leftsideQWP() {
   pros::ADIAnalogIn pm('A');
+
   chassis.set_tank(DRIVE_SPEED, DRIVE_SPEED);
   pros::delay(100);
   chassis.set_tank(0, 0);
@@ -118,7 +120,7 @@ void leftsideQWP() {
   chassis.set_drive_pid(-1, DRIVE_SPEED);
   chassis.wait_drive();
 
-  pros::delay(2000);
+  launche();
 
   chassis.set_drive_pid(6, DRIVE_SPEED);
   chassis.wait_drive();
@@ -145,7 +147,6 @@ void rightsideQWP() {
 }
 
 void blank() {
-  pros::Task launch_task(launche);
 }
 /*
 
