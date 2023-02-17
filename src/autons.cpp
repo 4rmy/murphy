@@ -94,8 +94,6 @@ void launche() {
 }
 
 void leftsideQWP() {
-  pros::ADIAnalogIn pm('A');
-
   chassis.set_tank(DRIVE_SPEED, DRIVE_SPEED);
   pros::delay(100);
   chassis.set_tank(0, 0);
