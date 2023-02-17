@@ -1,61 +1,27 @@
 #include "autons.hpp"
 #include "main.h"
 #include "pros/motors.hpp"
+#include "pros/rtos.hpp"
+#include <future>
 #include <random>
 
 const int DRIVE_SPEED = 110;
 const int TURN_SPEED = 90;
 const int SWING_SPEED = 90;
 
-bool alaunched = false;
-bool alaunching = false;
-bool astart = false;
-bool adone = true;
-int aminval = 1100;
-int amaxval = 2100;
 bool aendgame_state = false;
+int aminval = 1525;
+int amaxval = 2100;
+bool fin = false;
 
 pros::Controller controller(pros::E_CONTROLLER_MASTER);
 pros::Motor Intake(7);
 pros::Motor launcher(4);
-pros::ADIAnalogIn pm('A');
 pros::ADIDigitalOut endgame('B');
 
 ///
 // Constants
 ///
-
-bool acheckLaunch() {
-  if (adone && astart) {
-    alaunching = true;
-    adone = false;
-    astart = false;
-  }
-
-  if (alaunching && pm.get_value() <= amaxval) {
-    launcher.move_velocity(100);
-  } else if (alaunching && pm.get_value() > aminval) {
-    launcher.move_velocity(0);
-    alaunching = false;
-    alaunched = true;
-  }
-
-  if (alaunched && pm.get_value() >= aminval) {
-    launcher.move_velocity(100);
-  } else if (alaunched && pm.get_value() < aminval) {
-    launcher.move_velocity(0);
-    alaunched = false;
-    adone = true;
-  }
-
-  return adone;
-}
-
-void waitUntilLaunched() {
-  while (!acheckLaunch()) {
-    pros::delay(20);
-  }
-}
 
 // It's best practice to tune constants when the robot is empty and with heavier
 // game objects, or with lifts up vs down. If the objects are light or the cog
@@ -103,7 +69,31 @@ void modified_exit_condition() {
   chassis.set_exit_condition(chassis.drive_exit, 80, 50, 300, 150, 500, 500);
 }
 
+void launche() {
+  pros::ADIAnalogIn pm('A');
+  bool done = false;
+  bool start = true;
+  fin = false;
+  while (!fin) {
+    if (start && pm.get_value() >= aminval) {
+      launcher.move_velocity(100);
+    } else if (pm.get_value() <= aminval) {
+      launcher.move_velocity(0);
+      done = true;
+      start = false;
+    }
+    if (done && pm.get_value() <= amaxval) {
+      launcher.move_velocity(100);
+    } else if (pm.get_value() > aminval) {
+      launcher.move_velocity(0);
+      done = false;
+      fin = true;
+    }
+  }
+}
+
 void leftsideQWP() {
+  pros::ADIAnalogIn pm('A');
   chassis.set_tank(DRIVE_SPEED, DRIVE_SPEED);
   pros::delay(100);
   chassis.set_tank(0, 0);
@@ -113,97 +103,49 @@ void leftsideQWP() {
   Intake.move_velocity(0);
   pros::delay(500);
 
-  chassis.set_drive_pid(-1, DRIVE_SPEED);
+  chassis.set_drive_pid(-6, DRIVE_SPEED);
   chassis.wait_drive();
 
-  chassis.set_drive_pid(0, DRIVE_SPEED);
-  chassis.wait_drive();
-  
   chassis.set_turn_pid(45, TURN_SPEED);
   chassis.wait_drive();
 
-  chassis.set_drive_pid(-48, DRIVE_SPEED);
+  chassis.set_drive_pid(-56, DRIVE_SPEED);
   chassis.wait_drive();
 
-  chassis.set_drive_pid(0, DRIVE_SPEED);
-  chassis.wait_drive();
-}
-
-void rightsideQWP() {
-  chassis.set_drive_pid(24, DRIVE_SPEED);
+  chassis.set_turn_pid(-45, TURN_SPEED);
   chassis.wait_drive();
 
-  chassis.set_turn_pid(90, TURN_SPEED);
+  chassis.set_drive_pid(-1, DRIVE_SPEED);
   chassis.wait_drive();
 
-  chassis.set_drive_pid(11, DRIVE_SPEED);
+  pros::delay(2000);
+
+  chassis.set_drive_pid(6, DRIVE_SPEED);
   chassis.wait_drive();
 
-  Intake.move_relative(90, 600);
-  pros::delay(500);
-
-  chassis.set_drive_pid(-10, DRIVE_SPEED);
+  chassis.set_turn_pid(-135, TURN_SPEED);
   chassis.wait_drive();
 
-  astart = true;
-  waitUntilLaunched();
-
-  chassis.set_turn_pid(135, TURN_SPEED);
-  chassis.wait_drive();
-
-  Intake.move_velocity(600);
-
-  chassis.set_drive_pid(60, DRIVE_SPEED / 2);
-  chassis.wait_drive();
-
-  Intake.move_velocity(0);
-
-  chassis.set_turn_pid(-25, TURN_SPEED);
-  chassis.wait_drive();
-
-  chassis.set_drive_pid(72, DRIVE_SPEED);
-  chassis.wait_drive();
-
-  chassis.set_turn_pid(25, TURN_SPEED);
-  chassis.wait_drive();
-
-  chassis.set_drive_pid(48, DRIVE_SPEED);
+  chassis.set_drive_pid(58, DRIVE_SPEED);
   chassis.wait_drive();
 
   chassis.set_turn_pid(-90, TURN_SPEED);
   chassis.wait_drive();
 
-  chassis.set_drive_pid(11, DRIVE_SPEED);
+  chassis.set_drive_pid(6.5, DRIVE_SPEED);
   chassis.wait_drive();
-
-  Intake.move_relative(90, 600);
+  
+  Intake.move_velocity(600);
+  pros::delay(400);
+  Intake.move_velocity(0);
   pros::delay(500);
+}
 
-  chassis.set_drive_pid(-2, DRIVE_SPEED);
-  chassis.wait_drive();
+void rightsideQWP() {
 }
 
 void blank() {
-  chassis.set_tank(110, 100);
-  pros::delay(100);
-  chassis.set_tank(0, 0);
-
-  Intake.move_velocity(600);
-  pros::delay(1000);
-  Intake.move_velocity(0);
-
-  chassis.set_drive_pid(-6, DRIVE_SPEED);
-  chassis.wait_drive();
-
-  chassis.set_turn_pid(-5, TURN_SPEED);
-  chassis.wait_drive();
-
-  chassis.set_tank(0, 0);
-
-  pros::delay(1000);
-
-  astart = true;
-  waitUntilLaunched();
+  pros::Task launch_task(launche);
 }
 /*
 

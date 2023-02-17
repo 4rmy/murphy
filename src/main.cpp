@@ -17,9 +17,9 @@
 bool launched = true;
 bool launching = false;
 bool done = false;
-int minval = 1125;
-int maxval = 2100;
 bool endgame_state = false;
+int minval = 1040;
+int maxval = 2100;
 
 // Chassis constructor
 Drive chassis(
@@ -52,10 +52,7 @@ Drive chassis(
     // be 2.333. eg. if your drive is 36:60 where the 60t is powered, your RATIO
     // would be 0.6.
     ,
-    ((float)36) / 60
-
-    ,
-    0
+    ((float)60) / 30
     // Uncomment if using tracking wheels
     /*
     // Left Tracking Wheel Ports (negative port will reverse it!)
@@ -81,7 +78,6 @@ Drive chassis(
 void initialize() {
   // Print our branding over your terminal :D
   // ez::print_ez_template();
-
   chassis.set_drive_brake(pros::E_MOTOR_BRAKE_COAST);
 
   pros::delay(
@@ -156,9 +152,7 @@ void autonomous() {
   chassis.reset_pid_targets();               // Resets PID targets to 0
   chassis.reset_gyro();                      // Reset gyro position to 0
   chassis.reset_drive_sensor();              // Reset drive sensors to 0
-  chassis.set_drive_brake(MOTOR_BRAKE_HOLD); // Set motors to hold.  This helps
-                                             // autonomous consistency.
-
+  chassis.set_drive_brake(MOTOR_BRAKE_HOLD);
   ez::as::auton_selector
       .call_selected_auton(); // Calls selected auton from autonomous selector.
 }
@@ -181,7 +175,7 @@ void opcontrol() {
   pros::Motor Intake(7);
   pros::Motor launcher(4);
   pros::ADIAnalogIn pm('F');
-  pros::ADIDigitalOut endgame('B');
+  pros::ADIDigitalOut endgame('G');
   pros::ADIDigitalOut pistonBoost('H');
 
   pistonBoost.set_value(false);
