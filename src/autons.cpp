@@ -1,5 +1,6 @@
 #include "autons.hpp"
 #include "main.h"
+#include "pros/adi.h"
 #include "pros/motors.hpp"
 #include "pros/rtos.hpp"
 #include <future>
@@ -10,7 +11,7 @@ const int TURN_SPEED = 90;
 const int SWING_SPEED = 90;
 
 bool aendgame_state = false;
-int aminval = 1525;
+int aminval = 1040;
 int amaxval = 2100;
 bool fin = false;
 
@@ -70,27 +71,9 @@ void modified_exit_condition() {
 }
 
 void launche() {
-  pros::ADIAnalogIn pm('A');
-  bool done = false;
-  bool start = true;
-  fin = false;
-  while (!fin) {
-    if (start && pm.get_value() >= aminval) {
-      launcher.move_velocity(100);
-    } else if (pm.get_value() <= aminval) {
-      launcher.move_velocity(0);
-      done = true;
-      start = false;
-    }
-    if (done && pm.get_value() <= amaxval) {
-      launcher.move_velocity(100);
-    } else if (pm.get_value() > aminval) {
-      launcher.move_velocity(0);
-      done = false;
-      fin = true;
-    }
-    pros::delay(10);
-  }
+  launcher.move_velocity(100);
+  pros::delay(2000);
+  launcher.move_velocity(0);
 }
 
 void leftsideQWP() {
@@ -99,7 +82,7 @@ void leftsideQWP() {
   chassis.set_tank(0, 0);
 
   Intake.move_velocity(600);
-  pros::delay(200);
+  pros::delay(275);
   Intake.move_velocity(0);
   pros::delay(500);
 
@@ -112,15 +95,18 @@ void leftsideQWP() {
   chassis.set_drive_pid(-56, DRIVE_SPEED);
   chassis.wait_drive();
 
+  chassis.set_turn_pid(-40, TURN_SPEED);
+  chassis.wait_drive();
+
   chassis.set_turn_pid(-45, TURN_SPEED);
   chassis.wait_drive();
 
-  chassis.set_drive_pid(-1, DRIVE_SPEED);
+  chassis.set_drive_pid(-2, DRIVE_SPEED);
   chassis.wait_drive();
 
   launche();
 
-  chassis.set_drive_pid(6, DRIVE_SPEED);
+  chassis.set_drive_pid(5, DRIVE_SPEED);
   chassis.wait_drive();
 
   chassis.set_turn_pid(-135, TURN_SPEED);
@@ -132,16 +118,75 @@ void leftsideQWP() {
   chassis.set_turn_pid(-90, TURN_SPEED);
   chassis.wait_drive();
 
-  chassis.set_drive_pid(6.5, DRIVE_SPEED);
+  chassis.set_drive_pid(8.5, DRIVE_SPEED);
+  chassis.wait_drive();
+  
+  Intake.move_velocity(600);
+  pros::delay(250);
+  Intake.move_velocity(0);
+  pros::delay(500);
+}
+
+void rightsideQWP() {
+  chassis.set_drive_pid(20, DRIVE_SPEED);
+  chassis.wait_drive();
+
+  chassis.set_turn_pid(90, TURN_SPEED);
+  chassis.wait_drive();
+  
+  chassis.set_drive_pid(3, DRIVE_SPEED);
+  chassis.wait_drive();
+
+  Intake.move_velocity(600);
+  pros::delay(200);
+  Intake.move_velocity(0);
+  pros::delay(500);
+
+  chassis.set_drive_pid(-6, DRIVE_SPEED);
+  chassis.wait_drive();
+  
+  chassis.set_turn_pid(45, TURN_SPEED);
+  chassis.wait_drive();
+
+  chassis.set_drive_pid(-56, DRIVE_SPEED);
+  chassis.wait_drive();
+
+  chassis.set_turn_pid(135, TURN_SPEED);
+  chassis.wait_drive();
+
+  chassis.set_drive_pid(-8, DRIVE_SPEED);
+  chassis.wait_drive();
+
+  launche();
+
+  chassis.set_drive_pid(8, DRIVE_SPEED);
+  chassis.wait_drive();
+
+  chassis.set_turn_pid(225, TURN_SPEED);
+  chassis.wait_drive();
+
+  chassis.set_drive_pid(58, DRIVE_SPEED);
+  chassis.wait_drive();
+
+  chassis.set_turn_pid(180, TURN_SPEED);
+  chassis.wait_drive();
+
+  chassis.set_drive_pid(4.5, DRIVE_SPEED);
+  chassis.wait_drive();
+
+  chassis.set_turn_pid(270, TURN_SPEED);
+  chassis.wait_drive();
+
+  chassis.set_turn_pid(180, TURN_SPEED);
+  chassis.wait_drive();
+
+  chassis.set_drive_pid(2, DRIVE_SPEED);
   chassis.wait_drive();
   
   Intake.move_velocity(600);
   pros::delay(400);
   Intake.move_velocity(0);
   pros::delay(500);
-}
-
-void rightsideQWP() {
 }
 
 void blank() {

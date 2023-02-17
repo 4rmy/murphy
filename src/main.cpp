@@ -178,7 +178,7 @@ void opcontrol() {
   pros::ADIDigitalOut endgame('G');
   pros::ADIDigitalOut pistonBoost('H');
 
-  pistonBoost.set_value(false);
+  pistonBoost.set_value(true);
   // This is preference to what you like to drive on.
 
   endgame.set_value(endgame_state);
