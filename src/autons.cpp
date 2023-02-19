@@ -161,7 +161,7 @@ void rightsideQWP() {
   
   chassis.set_drive_pid(8, DRIVE_SPEED);
   chassis.wait_drive();
-  /*
+  
   chassis.set_turn_pid(225, TURN_SPEED);
   chassis.wait_drive();
 
@@ -187,42 +187,135 @@ void rightsideQWP() {
   pros::delay(400);
   Intake.move_velocity(0);
   pros::delay(500);
-  */
 }
 
 void prog() {
+  // FIRST ROLLER
   chassis.set_tank(DRIVE_SPEED, DRIVE_SPEED);
   pros::delay(100);
   chassis.set_tank(0, 0);
 
   Intake.move_velocity(600);
-  pros::delay(400);
+  pros::delay(275);
   Intake.move_velocity(0);
   pros::delay(500);
 
-  chassis.set_drive_pid(-18, DRIVE_SPEED);
+  chassis.set_drive_pid(-2, DRIVE_SPEED);
+  chassis.wait_drive();
+
+  // PATH TO SHOOT
+  chassis.set_turn_pid(90, TURN_SPEED);
+  chassis.wait_drive();
+
+  chassis.set_drive_pid(-66, DRIVE_SPEED);
+  chassis.wait_drive();
+
+  chassis.set_turn_pid(85, TURN_SPEED);
+  chassis.wait_drive();
+
+  launche();
+
+  chassis.set_drive_pid(-45.6, DRIVE_SPEED);
+  chassis.wait_drive();
+
+  chassis.set_turn_pid(0, TURN_SPEED);
+  chassis.wait_drive();
+
+  chassis.set_drive_pid(-78, DRIVE_SPEED);
+  chassis.wait_drive();
+
+  chassis.set_turn_pid(-90, TURN_SPEED);
+  chassis.wait_drive();
+
+  // SECOND ROLLER
+  chassis.set_drive_pid(2, DRIVE_SPEED);
+  chassis.wait_drive();
+
+  chassis.set_tank(DRIVE_SPEED, DRIVE_SPEED);
+  pros::delay(100);
+  chassis.set_tank(0, 0);
+
+  Intake.move_velocity(600);
+  pros::delay(275);
+  Intake.move_velocity(0);
+  pros::delay(500);
+
+  chassis.set_drive_pid(-2, DRIVE_SPEED);
+  chassis.wait_drive();
+
+  chassis.set_turn_pid(-45, TURN_SPEED);
+  chassis.wait_drive();
+
+  chassis.set_drive_pid(-33.6, DRIVE_SPEED);
+  chassis.wait_drive();
+
+  chassis.set_turn_pid(-180, TURN_SPEED);
+  chassis.wait_drive();
+  
+  // THIRD ROLLER
+  chassis.set_drive_pid(2, DRIVE_SPEED);
+  chassis.wait_drive();
+
+  chassis.set_tank(DRIVE_SPEED, DRIVE_SPEED);
+  pros::delay(100);
+  chassis.set_tank(0, 0);
+
+  Intake.move_velocity(600);
+  pros::delay(275);
+  Intake.move_velocity(0);
+  pros::delay(500);
+
+  chassis.set_drive_pid(-2, DRIVE_SPEED);
+  chassis.wait_drive();
+
+  chassis.set_turn_pid(-90, TURN_SPEED);
+  chassis.wait_drive();
+
+  chassis.set_drive_pid(-102, DRIVE_SPEED);
+  chassis.wait_drive();
+
+  chassis.set_turn_pid(0, TURN_SPEED);
+  chassis.wait_drive();
+
+  chassis.set_drive_pid(102, DRIVE_SPEED);
   chassis.wait_drive();
 
   chassis.set_turn_pid(90, TURN_SPEED);
   chassis.wait_drive();
 
-  chassis.set_drive_pid(16, DRIVE_SPEED);
+  // FOURTH ROLLER
+  chassis.set_drive_pid(2, DRIVE_SPEED);
   chassis.wait_drive();
 
+  chassis.set_tank(DRIVE_SPEED, DRIVE_SPEED);
+  pros::delay(100);
+  chassis.set_tank(0, 0);
+
   Intake.move_velocity(600);
-  pros::delay(400);
+  pros::delay(275);
   Intake.move_velocity(0);
   pros::delay(500);
 
-  chassis.set_drive_pid(-16, DRIVE_SPEED);
+  chassis.set_drive_pid(-2, DRIVE_SPEED);
   chassis.wait_drive();
 
-  chassis.set_turn_pid(45, TURN_SPEED);
+  // ENDGAME LINEUP
+  chassis.set_turn_pid(135, TURN_SPEED);
+  chassis.wait_drive();
+
+  chassis.set_drive_pid(-16.8, DRIVE_SPEED);
+  chassis.wait_drive();
+
+  chassis.set_turn_pid(225, TURN_SPEED);
+  chassis.wait_drive();
+
+  chassis.set_drive_pid(12, DRIVE_SPEED);
   chassis.wait_drive();
 
   endgame.set_value(true);
+  pros::delay(1000);
 
-  chassis.set_drive_pid(-4, DRIVE_SPEED);
+  chassis.set_drive_pid(-12, DRIVE_SPEED);
   chassis.wait_drive();
 }
 
