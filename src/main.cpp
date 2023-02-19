@@ -18,7 +18,7 @@ bool launched = true;
 bool launching = false;
 bool done = false;
 bool endgame_state = false;
-int minval = 1040;
+int minval = 1043;
 int maxval = 2100;
 
 // Chassis constructor
@@ -106,6 +106,7 @@ void initialize() {
   ez::as::auton_selector.add_autons({
       Auton("LeftSide qualifier", leftsideQWP),
       Auton("RightSide qualifier", rightsideQWP),
+      Auton("Programmer Auton", prog),
       Auton("Blank", blank),
   });
 

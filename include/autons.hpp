@@ -6,6 +6,7 @@ extern Drive chassis;
 
 void leftsideQWP();
 void rightsideQWP();
+void prog();
 void blank();
 
 void default_constants();
